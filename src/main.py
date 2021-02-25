@@ -41,9 +41,9 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
-@app.route('/todos', methods=['GET'])
-def handle_todo():
-    todos = Todo.query.all()
+@app.route('/todos/<user>', methods=['GET'])
+def handle_todo(user):
+    todos = Todo.query.filter_by(user=user)
     response_body = list(map(lambda x: x.serialize(), todos))
     return jsonify(response_body), 200 
 
@@ -51,12 +51,35 @@ def handle_todo():
 def handle_new():
     todo = request.json
     new_todo = Todo(label=todo["label"],done=todo["done"],user=todo["user"])
-    db.session.add(todo)
+    db.session.add(new_todo)
     db.session.commit()
     todos = Todo.query.all()
     response_body = list(map(lambda x: x.serialize(), todos))
     return jsonify(response_body), 200 
 
+@app.route('/todos/<int:id>', methods=['PUT'])
+def handle_update(id):
+    task1 = Todo.query.get(id)
+    todo = request.json
+    if task1 is None:
+        raise APIException('Task not found', status_code=404)
+    task1.label = todo['label']
+    task1.done = todo['done']
+    db.session.commit()
+    todos = Todo.query.filter_by(user=todo['user'])
+    response_body = list(map(lambda x: x.serialize(), todos))
+    return jsonify(response_body), 200 
+
+@app.route('/todos/<user>/<int:id>', methods=['DELETE'])
+def handle_delete(user,id):
+    remove_task = Todo.query.get(id)
+    if remove_task is None:
+        raise APIException('Task list not found', status_code=404)
+    db.session.delete(remove_task)
+    db.session.commit()
+    todos = Todo.query.filter_by(user=user)
+    response_body = list(map(lambda x: x.serialize(), todos))
+    return jsonify(response_body), 200 
 
 
 # this only runs if `$ python src/main.py` is executed

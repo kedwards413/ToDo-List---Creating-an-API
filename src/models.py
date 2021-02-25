@@ -18,7 +18,7 @@ class Todo(db.Model):
         return '<User %r>' % self.username
 
     def __repr__(self):
-        return '<Tasks %r>' % self.label
+        return '<Todo %r>' % self.label
 
     def serialize(self):
         return {
